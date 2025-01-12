@@ -33,7 +33,7 @@ fn iter_directions(
 	j: usize,
 	width: usize,
 	height: usize,
-	lines: &Vec<&[u8]>,
+	lines: &[&[u8]],
 ) -> impl Iterator<Item = [u8; 4]> {
 	let mut words = Vec::with_capacity(8);
 
