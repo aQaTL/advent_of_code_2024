@@ -1,5 +1,5 @@
 use advent_of_code_2024::Result;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 fn main() -> Result<()> {
 	let input = std::fs::read_to_string(concat!("inputs/", env!("CARGO_BIN_NAME"), ".txt"))?;
@@ -94,42 +94,39 @@ where
 }
 
 fn part_2(input: &str) -> Result<usize> {
-	let mut map: Vec<Vec<u8>> = input.lines().map(|l| l.as_bytes().to_vec()).collect();
-	let map_ori = map.clone();
+	let map: Vec<Vec<u8>> = input.lines().map(|l| l.as_bytes().to_vec()).collect();
 
 	let mut loops_detected = 0;
-	let mut positions = HashMap::<(Pos, usize), u64>::new(); // (position, direction)
+	let mut positions = HashSet::<(Pos, usize)>::new(); // (position, direction)
 
-	for (y, row) in map_ori.iter().enumerate() {
+	for (y, row) in map.iter().enumerate() {
 		for (x, cell) in row.iter().enumerate() {
-			map = map_ori.clone();
 			if *cell == b'#' || *cell == b'^' {
 				continue;
-			} else {
-				map[y][x] = b'#';
 			}
 
 			let mut guard_pos = find_guard_pos(&map)?;
 			let mut guard_dir_idx = 0;
 
 			positions.clear();
-			positions.insert((guard_pos, guard_dir_idx), 1);
+			positions.insert((guard_pos, guard_dir_idx));
 
 			loop {
 				let new_pos = guard_pos + DIRECTIONS[guard_dir_idx];
 				if !position_valid(&map, new_pos) {
 					break;
 				}
-				if map[new_pos.y as usize][new_pos.x as usize] == b'#' {
+				if map[new_pos.y as usize][new_pos.x as usize] == b'#'
+					|| new_pos.x as usize == x && new_pos.y as usize == y
+				{
 					guard_dir_idx = (guard_dir_idx + 1) % DIRECTIONS.len();
 				} else {
 					guard_pos = new_pos;
-					let entry = positions.entry((guard_pos, guard_dir_idx)).or_insert(1);
-					*entry += 1;
-					if *entry >= 3 {
-						loops_detected += 1;
-						break;
-					}
+				}
+				let new_value = positions.insert((guard_pos, guard_dir_idx));
+				if !new_value {
+					loops_detected += 1;
+					break;
 				}
 			}
 		}
